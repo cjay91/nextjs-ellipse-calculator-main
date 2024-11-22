@@ -24,6 +24,6 @@ variable "branch_name" {
 
 variable "domain_name" {
   type        = string
-  default     = "nextjs-calculator-1732245504-568z.amplifyapp.com"
+  default     = "nextjs-calculator-1732245562-9471.amplifyapp.com"
   description = "AWS Amplify Domain Name"
 }
