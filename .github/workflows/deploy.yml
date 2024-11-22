@@ -45,7 +45,7 @@ jobs:
           AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
         run: |
           cancel_existing_jobs() {
-            JOBS=$(aws amplify list-jobs               --app-id $AMPLIFY_APP_ID               --branch-name main               --query 'jobSummaries[?status==`PENDING` || status==`RUNNING`].jobId'               --output text)
+            JOBS=$(aws amplify list-jobs               --app-id $AMPLIFY_APP_ID               --branch-name master               --query 'jobSummaries[?status==`PENDING` || status==`RUNNING`].jobId'               --output text)
             
             for JOB_ID in $JOBS
             do
@@ -56,7 +56,7 @@ jobs:
           }
           
           start_deployment() {
-            aws amplify start-job               --app-id $AMPLIFY_APP_ID               --branch-name main               --job-type RELEASE
+            aws amplify start-job               --app-id $AMPLIFY_APP_ID               --branch-name master               --job-type RELEASE
           }
           
           MAX_RETRIES=3
