@@ -1,0 +1,44 @@
+
+
+name: Deploy to AWS Amplify
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  AWS_REGION: us-west-2
+  AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+  
+jobs:
+  deploy:
+    name: Deploy to Amplify
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - run: npm ci
+      - run: npm run build
+        env:
+          NODE_ENV: production
+          
+      - name: Deploy to Amplify
+        run: |
+          aws amplify start-job --app-id ${{ env.AMPLIFY_APP_ID }} --branch-name ${{ github.ref_name }} --job-type RELEASE
+
