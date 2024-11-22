@@ -1,84 +1,33 @@
 
 
 name: Deploy to AWS Amplify
+
 on:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
-      - master
+      - main  # or your default branch
 
-env:
-  AWS_REGION: us-west-2
-  AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
-  
 jobs:
   deploy:
-    name: Deploy to Amplify
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          
-      - uses: aws-actions/configure-aws-credentials@v2
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-2
           
-      - run: npm ci
-      - run: npm run build
-        env:
-          NODE_ENV: production
-          AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-      - name: Deploy with Retries
+      - name: Deploy to Amplify
         env:
           AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
         run: |
-          cancel_existing_jobs() {
-            JOBS=$(aws amplify list-jobs               --app-id $AMPLIFY_APP_ID               --branch-name master               --query 'jobSummaries[?status==`PENDING` || status==`RUNNING`].jobId'               --output text)
-            
-            for JOB_ID in $JOBS
-            do
-              echo "Cancelling job $JOB_ID"
-              aws amplify stop-job --app-id $AMPLIFY_APP_ID --job-id $JOB_ID
-              sleep 5
-            done
-          }
+          # Explicitly set branch name
+          BRANCH_NAME="master"  # or your branch name
           
-          start_deployment() {
-            aws amplify start-job               --app-id $AMPLIFY_APP_ID               --branch-name master               --job-type RELEASE
-          }
+          echo "Starting deployment for branch: $BRANCH_NAME"
           
-          MAX_RETRIES=3
-          RETRY_COUNT=0
-          
-          while [ $RETRY_COUNT -lt $MAX_RETRIES ]
-          do
-            echo "Deployment attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES"
-            
-            cancel_existing_jobs
-            
-            sleep 10
-            
-            if start_deployment; then
-              echo "Deployment started successfully"
-              exit 0
-            else
-              echo "Deployment failed, retrying..."
-              RETRY_COUNT=$((RETRY_COUNT + 1))
-              sleep 15
-            fi
-          done
-          
-          echo "Failed to deploy after $MAX_RETRIES attempts"
-          exit 1
+          aws amplify start-job             --app-id ${{ secrets.AMPLIFY_APP_ID }}             --branch-name $BRANCH_NAME             --job-type RELEASE
