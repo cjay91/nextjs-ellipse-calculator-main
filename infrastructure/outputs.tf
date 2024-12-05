@@ -1,4 +1,1 @@
-
-output "amplify_app_id" {
-  value = aws_amplify_app.hello_world_amplify.id
-}
+{"output \"amplify_app_id\" {\n  value = aws_amplify_app.frontend_app.id\n}\n\noutput \"amplify_app_url\" {\n  value = \"${aws_amplify_app.frontend_app.default_domain}\"\n}\n"
