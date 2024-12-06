@@ -1,1 +1,58 @@
-{"resource \"aws_amplify_app\" \"frontend_app\" {\n  name       = var.app_name\n  repository = var.repository\n\n  access_token             = var.access_token\n  enable_branch_auto_build = true\n\n  build_spec = <<-EOT\n    version: 1\n    frontend:\n      phases:\n        preBuild:\n          commands:\n            - npm ci\n        build:\n          commands:\n            - npm run build\n      artifacts:\n        baseDirectory: .next\n        files:\n          - '**/*'\n      cache:\n        paths:\n          - node_modules/**/*\n          - .next/cache/**/*\n  EOT\n\n  custom_rule {\n    source = "/<*>"\n    status = \"404\"\n    target = \"/index.html\"\n  }\n}\n\nresource \"aws_amplify_branch\" \"main\" {\n  app_id      = aws_amplify_app.frontend_app.id\n  branch_name = var.branch_name\n}\n\nresource \"aws_amplify_domain_association\" \"domain\" {\n  app_id      = aws_amplify_app.frontend_app.id\n  domain_name = var.domain_name\n\n  sub_domain {\n    branch_name = aws_amplify_branch.main.branch_name\n    prefix      = \"\"\n  }\n}\n"
+resource "aws_amplify_app" "hello_world_amplify" {
+  name       = var.app_name
+  repository = var.repository #This will be your reactjs project
+
+  access_token             = var.access_token
+  enable_branch_auto_build = true
+
+  # The default build_spec added by the Amplify Console for React.
+  build_spec = <<-EOT
+    version: 1
+    frontend:
+    phases:
+        preBuild:
+        commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+        commands:
+            - npm run build
+    artifacts:
+        baseDirectory: .next
+        files:
+        - '**/*'
+    cache:
+        paths:
+        - .next/cache/**/*
+        - .npm/**/*
+  EOT
+
+  # The default rewrites and redirects added by the Amplify Console.
+  custom_rule {
+    source = "/<*>"
+    status = "404"
+    target = "/index.html"
+  }
+
+  environment_variables = {
+    Name           = "hello-world"
+    Provisioned_by = "Terraform"
+  }
+}
+
+resource "aws_amplify_branch" "amplify_branch" {
+  app_id            = aws_amplify_app.hello_world_amplify.id
+  branch_name       = var.branch_name
+  enable_auto_build = true
+}
+
+resource "aws_amplify_domain_association" "domain_association" {
+  app_id                = aws_amplify_app.hello_world_amplify.id
+  domain_name           = var.domain_name
+  wait_for_verification = false
+
+  sub_domain {
+    branch_name = aws_amplify_branch.amplify_branch.branch_name
+    prefix      = var.branch_name
+  }
+
+}

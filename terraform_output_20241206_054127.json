@@ -1,0 +1,7 @@
+{
+  "amplify_app_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "d344nzjfx7l5b2"
+  }
+}

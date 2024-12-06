@@ -1,1 +1,3 @@
-{"provider \"aws\" {\n  region = var.aws_region\n  default_tags {\n    tags = {\n      Environment = var.environment\n      Project     = var.project_name\n      ManagedBy   = \"Terraform\"\n    }\n  }\n}\n\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 4.0\"\n    }\n  }\n}\n"
+provider "aws" {
+  region = "us-east-2"  # Directly specify the region instead of using a variable
+}
