@@ -1,6 +1,5 @@
 
 
-
 name: Deploy to AWS Amplify
 
 on:
@@ -10,7 +9,7 @@ on:
   pull_request:
     branches:
       - master
-  
+
 env:
   AWS_REGION: us-east-2
   AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
